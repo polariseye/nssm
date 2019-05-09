@@ -173,8 +173,15 @@ void strip_basename(TCHAR * buffer) {
 
 /* How to use me correctly */
 int usage(int ret) {
-	if ((!GetConsoleWindow() || !GetStdHandle(STD_OUTPUT_HANDLE)) && GetProcessWindowStation()) popup_message(0, MB_OK, NSSM_MESSAGE_USAGE, NSSM_VERSION, NSSM_CONFIGURATION, NSSM_DATE);
-	else print_message(stdin, NSSM_MESSAGE_USAGE, NSSM_VERSION, NSSM_CONFIGURATION, NSSM_DATE);
+	if ((!GetConsoleWindow() || !GetStdHandle(STD_OUTPUT_HANDLE)) && GetProcessWindowStation())
+	{
+		popup_message(0, MB_OK, NSSM_MESSAGE_USAGE, NSSM_VERSION, NSSM_CONFIGURATION, NSSM_DATE);
+	}
+	else
+	{
+		print_message(stdout, NSSM_MESSAGE_USAGE, NSSM_VERSION, NSSM_CONFIGURATION, NSSM_DATE);
+	}
+
 	return(ret);
 }
 
@@ -190,7 +197,7 @@ void check_admin() {
 }
 
 static int elevate(int argc, TCHAR * *argv, unsigned long message) {
-	print_message(stdin, message);
+	print_message(stdout, message);
 
 	SHELLEXECUTEINFO sei;
 	ZeroMemory(&sei, sizeof(sei));
@@ -200,7 +207,7 @@ static int elevate(int argc, TCHAR * *argv, unsigned long message) {
 
 	TCHAR* args = (TCHAR*)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, EXE_LENGTH * sizeof(TCHAR));
 	if (!args) {
-		print_message(stdin, NSSM_MESSAGE_OUT_OF_MEMORY, _T("GetCommandLine()"), _T("elevate()"));
+		print_message(stdout, NSSM_MESSAGE_OUT_OF_MEMORY, _T("GetCommandLine()"), _T("elevate()"));
 		return 111;
 	}
 

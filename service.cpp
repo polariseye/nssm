@@ -362,13 +362,13 @@ SC_HANDLE open_service(SC_HANDLE services, TCHAR * service_name, unsigned long a
 	EnumServicesStatusEx(services, SC_ENUM_PROCESS_INFO, SERVICE_DRIVER | SERVICE_FILE_SYSTEM_DRIVER | SERVICE_KERNEL_DRIVER | SERVICE_WIN32, SERVICE_STATE_ALL, 0, 0, &required, &count, &resume, 0);
 	error = GetLastError();
 	if (error != ERROR_MORE_DATA) {
-		print_message(stdin, NSSM_MESSAGE_ENUMSERVICESSTATUS_FAILED, error_string(GetLastError()));
+		print_message(stdout, NSSM_MESSAGE_ENUMSERVICESSTATUS_FAILED, error_string(GetLastError()));
 		return 0;
 	}
 
 	ENUM_SERVICE_STATUS_PROCESS* status = (ENUM_SERVICE_STATUS_PROCESS*)HeapAlloc(GetProcessHeap(), 0, required);
 	if (!status) {
-		print_message(stdin, NSSM_MESSAGE_OUT_OF_MEMORY, _T("ENUM_SERVICE_STATUS_PROCESS"), _T("open_service()"));
+		print_message(stdout, NSSM_MESSAGE_OUT_OF_MEMORY, _T("ENUM_SERVICE_STATUS_PROCESS"), _T("open_service()"));
 		return 0;
 	}
 
@@ -386,7 +386,7 @@ SC_HANDLE open_service(SC_HANDLE services, TCHAR * service_name, unsigned long a
 			error = GetLastError();
 			if (error != ERROR_MORE_DATA) {
 				HeapFree(GetProcessHeap(), 0, status);
-				print_message(stdin, NSSM_MESSAGE_ENUMSERVICESSTATUS_FAILED, error_string(GetLastError()));
+				print_message(stdout, NSSM_MESSAGE_ENUMSERVICESSTATUS_FAILED, error_string(GetLastError()));
 				return 0;
 			}
 		}
@@ -395,7 +395,7 @@ SC_HANDLE open_service(SC_HANDLE services, TCHAR * service_name, unsigned long a
 			if (str_equiv(status[i].lpDisplayName, service_name)) {
 				if (_sntprintf_s(canonical_name, canonical_namelen, _TRUNCATE, _T("%s"), status[i].lpServiceName) < 0) {
 					HeapFree(GetProcessHeap(), 0, status);
-					print_message(stdin, NSSM_MESSAGE_OUT_OF_MEMORY, _T("canonical_name"), _T("open_service()"));
+					print_message(stdout, NSSM_MESSAGE_OUT_OF_MEMORY, _T("canonical_name"), _T("open_service()"));
 					return 0;
 				}
 
@@ -421,18 +421,18 @@ QUERY_SERVICE_CONFIG* query_service_config(const TCHAR * service_name, SC_HANDLE
 	if (error == ERROR_INSUFFICIENT_BUFFER) {
 		qsc = (QUERY_SERVICE_CONFIG*)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, bufsize);
 		if (!qsc) {
-			print_message(stdin, NSSM_MESSAGE_OUT_OF_MEMORY, _T("QUERY_SERVICE_CONFIG"), _T("query_service_config()"), 0);
+			print_message(stdout, NSSM_MESSAGE_OUT_OF_MEMORY, _T("QUERY_SERVICE_CONFIG"), _T("query_service_config()"), 0);
 			return 0;
 		}
 	}
 	else {
-		print_message(stdin, NSSM_MESSAGE_QUERYSERVICECONFIG_FAILED, service_name, error_string(error), 0);
+		print_message(stdout, NSSM_MESSAGE_QUERYSERVICECONFIG_FAILED, service_name, error_string(error), 0);
 		return 0;
 	}
 
 	if (!QueryServiceConfig(service_handle, qsc, bufsize, &bufsize)) {
 		HeapFree(GetProcessHeap(), 0, qsc);
-		print_message(stdin, NSSM_MESSAGE_QUERYSERVICECONFIG_FAILED, service_name, error_string(GetLastError()), 0);
+		print_message(stdout, NSSM_MESSAGE_QUERYSERVICECONFIG_FAILED, service_name, error_string(GetLastError()), 0);
 		return 0;
 	}
 
@@ -449,7 +449,7 @@ int prepend_service_group_identifier(TCHAR * group, TCHAR * *canon) {
 	size_t len = _tcslen(group) + 1;
 	*canon = (TCHAR*)HeapAlloc(GetProcessHeap(), 0, (len + 1) * sizeof(TCHAR));
 	if (!*canon) {
-		print_message(stdin, NSSM_MESSAGE_OUT_OF_MEMORY, _T("canon"), _T("prepend_service_group_identifier()"));
+		print_message(stdout, NSSM_MESSAGE_OUT_OF_MEMORY, _T("canon"), _T("prepend_service_group_identifier()"));
 		return 1;
 	}
 
@@ -496,7 +496,7 @@ int set_service_dependencies(const TCHAR * service_name, SC_HANDLE service_handl
 	if (buffer && buffer[0]) {
 		SC_HANDLE services = open_service_manager(SC_MANAGER_CONNECT | SC_MANAGER_ENUMERATE_SERVICE);
 		if (!services) {
-			print_message(stdin, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
+			print_message(stdout, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
 			return 1;
 		}
 
@@ -526,7 +526,7 @@ int set_service_dependencies(const TCHAR * service_name, SC_HANDLE service_handl
 			if (ret == ERROR_SUCCESS) {
 				groups = (TCHAR*)HeapAlloc(GetProcessHeap(), 0, groupslen);
 				if (!groups) {
-					print_message(stdin, NSSM_MESSAGE_OUT_OF_MEMORY, _T("groups"), _T("set_service_dependencies()"));
+					print_message(stdout, NSSM_MESSAGE_OUT_OF_MEMORY, _T("groups"), _T("set_service_dependencies()"));
 					return 3;
 				}
 
@@ -604,7 +604,7 @@ int set_service_dependencies(const TCHAR * service_name, SC_HANDLE service_handl
 
 	if (!ChangeServiceConfig(service_handle, SERVICE_NO_CHANGE, SERVICE_NO_CHANGE, SERVICE_NO_CHANGE, 0, 0, 0, dependencies, 0, 0, 0)) {
 		if (num_dependencies) HeapFree(GetProcessHeap(), 0, dependencies);
-		print_message(stdin, NSSM_MESSAGE_CHANGESERVICECONFIG_FAILED, error_string(GetLastError()));
+		print_message(stdout, NSSM_MESSAGE_CHANGESERVICECONFIG_FAILED, error_string(GetLastError()));
 		return -1;
 	}
 
@@ -638,7 +638,7 @@ int get_service_dependencies(const TCHAR * service_name, SC_HANDLE service_handl
 	*buffer = (TCHAR*)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, *bufsize * sizeof(TCHAR));
 	if (!*buffer) {
 		*bufsize = 0;
-		print_message(stdin, NSSM_MESSAGE_OUT_OF_MEMORY, _T("lpDependencies"), _T("get_service_dependencies()"));
+		print_message(stdout, NSSM_MESSAGE_OUT_OF_MEMORY, _T("lpDependencies"), _T("get_service_dependencies()"));
 		HeapFree(GetProcessHeap(), 0, qsc);
 		return 4;
 	}
@@ -702,7 +702,7 @@ int get_service_description(const TCHAR * service_name, SC_HANDLE service_handle
 	if (error == ERROR_INSUFFICIENT_BUFFER) {
 		SERVICE_DESCRIPTION* description = (SERVICE_DESCRIPTION*)HeapAlloc(GetProcessHeap(), 0, bufsize);
 		if (!description) {
-			print_message(stdin, NSSM_MESSAGE_OUT_OF_MEMORY, _T("SERVICE_CONFIG_DESCRIPTION"), _T("get_service_description()"));
+			print_message(stdout, NSSM_MESSAGE_OUT_OF_MEMORY, _T("SERVICE_CONFIG_DESCRIPTION"), _T("get_service_description()"));
 			return 2;
 		}
 
@@ -714,12 +714,12 @@ int get_service_description(const TCHAR * service_name, SC_HANDLE service_handle
 		}
 		else {
 			HeapFree(GetProcessHeap(), 0, description);
-			print_message(stdin, NSSM_MESSAGE_QUERYSERVICECONFIG2_FAILED, service_name, _T("SERVICE_CONFIG_DESCRIPTION"), error_string(error));
+			print_message(stdout, NSSM_MESSAGE_QUERYSERVICECONFIG2_FAILED, service_name, _T("SERVICE_CONFIG_DESCRIPTION"), error_string(error));
 			return 3;
 		}
 	}
 	else {
-		print_message(stdin, NSSM_MESSAGE_QUERYSERVICECONFIG2_FAILED, service_name, _T("SERVICE_CONFIG_DESCRIPTION"), error_string(error));
+		print_message(stdout, NSSM_MESSAGE_QUERYSERVICECONFIG2_FAILED, service_name, _T("SERVICE_CONFIG_DESCRIPTION"), error_string(error));
 		return 4;
 	}
 }
@@ -743,7 +743,7 @@ int get_service_startup(const TCHAR * service_name, SC_HANDLE service_handle, co
 	if (error == ERROR_INSUFFICIENT_BUFFER) {
 		SERVICE_DELAYED_AUTO_START_INFO* info = (SERVICE_DELAYED_AUTO_START_INFO*)HeapAlloc(GetProcessHeap(), 0, bufsize);
 		if (!info) {
-			print_message(stdin, NSSM_MESSAGE_OUT_OF_MEMORY, _T("SERVICE_DELAYED_AUTO_START_INFO"), _T("get_service_startup()"));
+			print_message(stdout, NSSM_MESSAGE_OUT_OF_MEMORY, _T("SERVICE_DELAYED_AUTO_START_INFO"), _T("get_service_startup()"));
 			return 2;
 		}
 
@@ -755,13 +755,13 @@ int get_service_startup(const TCHAR * service_name, SC_HANDLE service_handle, co
 		else {
 			error = GetLastError();
 			if (error != ERROR_INVALID_LEVEL) {
-				print_message(stdin, NSSM_MESSAGE_QUERYSERVICECONFIG2_FAILED, service_name, _T("SERVICE_CONFIG_DELAYED_AUTO_START_INFO"), error_string(error));
+				print_message(stdout, NSSM_MESSAGE_QUERYSERVICECONFIG2_FAILED, service_name, _T("SERVICE_CONFIG_DELAYED_AUTO_START_INFO"), error_string(error));
 				return 3;
 			}
 		}
 	}
 	else if (error != ERROR_INVALID_LEVEL) {
-		print_message(stdin, NSSM_MESSAGE_QUERYSERVICECONFIG2_FAILED, service_name, _T("SERVICE_DELAYED_AUTO_START_INFO"), error_string(error));
+		print_message(stdout, NSSM_MESSAGE_QUERYSERVICECONFIG2_FAILED, service_name, _T("SERVICE_DELAYED_AUTO_START_INFO"), error_string(error));
 		return 3;
 	}
 
@@ -783,7 +783,7 @@ int get_service_username(const TCHAR * service_name, const QUERY_SERVICE_CONFIG 
 		size_t len = _tcslen(qsc->lpServiceStartName);
 		*username = (TCHAR*)HeapAlloc(GetProcessHeap(), 0, (len + 1) * sizeof(TCHAR));
 		if (!*username) {
-			print_message(stdin, NSSM_MESSAGE_OUT_OF_MEMORY, _T("username"), _T("get_service_username()"));
+			print_message(stdout, NSSM_MESSAGE_OUT_OF_MEMORY, _T("username"), _T("get_service_username()"));
 			return 2;
 		}
 
@@ -849,7 +849,7 @@ void cleanup_nssm_service(nssm_service_t * service) {
 int pre_install_service(int argc, TCHAR * *argv) {
 	nssm_service_t* service = alloc_nssm_service();
 	if (!service) {
-		print_message(stdin, NSSM_MESSAGE_OUT_OF_MEMORY, _T("service"), _T("pre_install_service()"));
+		print_message(stdout, NSSM_MESSAGE_OUT_OF_MEMORY, _T("service"), _T("pre_install_service()"));
 		return 1;
 	}
 
@@ -867,10 +867,10 @@ int pre_install_service(int argc, TCHAR * *argv) {
 	{
 		if (fileMode == EACCES)
 		{
-			print_message(stdin, NSSM_EXE_FILE_CAN_NOT_ACCESS);
+			print_message(stdout, NSSM_EXE_FILE_CAN_NOT_ACCESS);
 		}
 		else {
-			print_message(stdin, NSSM_EXE_FILE_CAN_NOT_FOUND);
+			print_message(stdout, NSSM_EXE_FILE_CAN_NOT_FOUND);
 		}
 
 		return 1;
@@ -883,7 +883,7 @@ int pre_install_service(int argc, TCHAR * *argv) {
 	for (i = 2; i < argc; i++) flagslen += _tcslen(argv[i]) + 1;
 	if (!flagslen) flagslen = 1;
 	if (flagslen > _countof(service->flags)) {
-		print_message(stdin, NSSM_MESSAGE_FLAGS_TOO_LONG);
+		print_message(stdout, NSSM_MESSAGE_FLAGS_TOO_LONG);
 		return 2;
 	}
 
@@ -958,7 +958,7 @@ int pre_edit_service(int argc, TCHAR * *argv) {
 			break;
 		}
 		if (!settings[i].name) {
-			print_message(stdin, NSSM_MESSAGE_INVALID_PARAMETER, parameter);
+			print_message(stdout, NSSM_MESSAGE_INVALID_PARAMETER, parameter);
 			for (i = 0; settings[i].name; i++) _ftprintf(stdin, _T("%s\n"), settings[i].name);
 			return 1;
 		}
@@ -966,7 +966,7 @@ int pre_edit_service(int argc, TCHAR * *argv) {
 		additional = 0;
 		if (additional_mandatory) {
 			if (argc < mandatory) {
-				print_message(stdin, NSSM_MESSAGE_MISSING_SUBPARAMETER, parameter);
+				print_message(stdout, NSSM_MESSAGE_MISSING_SUBPARAMETER, parameter);
 				return 1;
 			}
 			additional = argv[3];
@@ -988,7 +988,7 @@ int pre_edit_service(int argc, TCHAR * *argv) {
 	/* Open service manager */
 	SC_HANDLE services = open_service_manager(SC_MANAGER_CONNECT | SC_MANAGER_ENUMERATE_SERVICE);
 	if (!services) {
-		print_message(stdin, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
+		print_message(stdout, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
 		return 2;
 	}
 
@@ -1015,7 +1015,7 @@ int pre_edit_service(int argc, TCHAR * *argv) {
 			HeapFree(GetProcessHeap(), 0, qsc);
 			CloseServiceHandle(service->handle);
 			CloseServiceHandle(services);
-			print_message(stdin, NSSM_MESSAGE_CANNOT_EDIT, service->name, NSSM_WIN32_OWN_PROCESS, 0);
+			print_message(stdout, NSSM_MESSAGE_CANNOT_EDIT, service->name, NSSM_WIN32_OWN_PROCESS, 0);
 			return 3;
 		}
 	}
@@ -1072,7 +1072,7 @@ int pre_edit_service(int argc, TCHAR * *argv) {
 
 	if (!service->exe[0]) {
 		service->native = true;
-		if (mode != MODE_GETTING && mode != MODE_DUMPING) print_message(stdin, NSSM_MESSAGE_INVALID_SERVICE, service->name, NSSM, service->image);
+		if (mode != MODE_GETTING && mode != MODE_DUMPING) print_message(stdout, NSSM_MESSAGE_INVALID_SERVICE, service->name, NSSM, service->image);
 	}
 
 	/* Editing with the GUI. */
@@ -1119,7 +1119,7 @@ int pre_edit_service(int argc, TCHAR * *argv) {
 	/* Trying to manage App* parameters for a non-NSSM service. */
 	if (!setting->native && service->native) {
 		CloseServiceHandle(service->handle);
-		print_message(stdin, NSSM_MESSAGE_NATIVE_PARAMETER, setting->name, NSSM);
+		print_message(stdout, NSSM_MESSAGE_NATIVE_PARAMETER, setting->name, NSSM);
 		return 1;
 	}
 
@@ -1171,7 +1171,7 @@ int pre_edit_service(int argc, TCHAR * *argv) {
 
 		value.string = (TCHAR*)HeapAlloc(GetProcessHeap(), 0, len * sizeof(TCHAR));
 		if (!value.string) {
-			print_message(stdin, NSSM_MESSAGE_OUT_OF_MEMORY, _T("value"), _T("edit_service()"));
+			print_message(stdout, NSSM_MESSAGE_OUT_OF_MEMORY, _T("value"), _T("edit_service()"));
 			CloseServiceHandle(service->handle);
 			return 2;
 		}
@@ -1228,7 +1228,7 @@ int pre_remove_service(int argc, TCHAR * *argv) {
 		cleanup_nssm_service(service);
 		return ret;
 	}
-	print_message(stdin, NSSM_MESSAGE_PRE_REMOVE_SERVICE);
+	print_message(stdout, NSSM_MESSAGE_PRE_REMOVE_SERVICE);
 	return 100;
 }
 
@@ -1239,7 +1239,7 @@ int install_service(nssm_service_t * service) {
 	/* Open service manager */
 	SC_HANDLE services = open_service_manager(SC_MANAGER_CONNECT | SC_MANAGER_CREATE_SERVICE);
 	if (!services) {
-		print_message(stdin, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
+		print_message(stdout, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
 		cleanup_nssm_service(service);
 		return 2;
 	}
@@ -1250,7 +1250,7 @@ int install_service(nssm_service_t * service) {
 	/* Create the service - settings will be changed in edit_service() */
 	service->handle = CreateService(services, service->name, service->name, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS, SERVICE_AUTO_START, SERVICE_ERROR_NORMAL, service->image, 0, 0, 0, 0, 0);
 	if (!service->handle) {
-		print_message(stdin, NSSM_MESSAGE_CREATESERVICE_FAILED, error_string(GetLastError()));
+		print_message(stdout, NSSM_MESSAGE_CREATESERVICE_FAILED, error_string(GetLastError()));
 		CloseServiceHandle(services);
 		return 5;
 	}
@@ -1307,7 +1307,7 @@ int edit_service(nssm_service_t * service, bool editing) {
 			virtual_account = true;
 			canon = (TCHAR*)HeapAlloc(GetProcessHeap(), 0, (service->usernamelen + 1) * sizeof(TCHAR));
 			if (!canon) {
-				print_message(stdin, NSSM_MESSAGE_OUT_OF_MEMORY, _T("canon"), _T("edit_service()"));
+				print_message(stdout, NSSM_MESSAGE_OUT_OF_MEMORY, _T("canon"), _T("edit_service()"));
 				return 5;
 			}
 			memmove(canon, username, (service->usernamelen + 1) * sizeof(TCHAR));
@@ -1324,7 +1324,7 @@ int edit_service(nssm_service_t * service, bool editing) {
 		else {
 			if (grant_logon_as_service(canon)) {
 				if (canon != username) HeapFree(GetProcessHeap(), 0, canon);
-				print_message(stdin, NSSM_MESSAGE_GRANT_LOGON_AS_SERVICE_FAILED, username);
+				print_message(stdout, NSSM_MESSAGE_GRANT_LOGON_AS_SERVICE_FAILED, username);
 				return 5;
 			}
 		}
@@ -1335,7 +1335,7 @@ int edit_service(nssm_service_t * service, bool editing) {
 
 	if (!ChangeServiceConfig(service->handle, service->type, startup, SERVICE_NO_CHANGE, 0, 0, 0, dependencies, canon, password, service->displayname)) {
 		if (canon != username) HeapFree(GetProcessHeap(), 0, canon);
-		print_message(stdin, NSSM_MESSAGE_CHANGESERVICECONFIG_FAILED, error_string(GetLastError()));
+		print_message(stdout, NSSM_MESSAGE_CHANGESERVICECONFIG_FAILED, error_string(GetLastError()));
 		return 5;
 	}
 	if (canon != username) HeapFree(GetProcessHeap(), 0, canon);
@@ -1365,7 +1365,7 @@ int edit_service(nssm_service_t * service, bool editing) {
 	if (!service->native) {
 		/* Now we need to put the parameters into the registry */
 		if (create_parameters(service, editing)) {
-			print_message(stdin, NSSM_MESSAGE_CREATE_PARAMETERS_FAILED);
+			print_message(stdout, NSSM_MESSAGE_CREATE_PARAMETERS_FAILED);
 			return 6;
 		}
 
@@ -1383,7 +1383,7 @@ int control_service(unsigned long control, int argc, TCHAR * *argv, bool return_
 
 	SC_HANDLE services = open_service_manager(SC_MANAGER_CONNECT | SC_MANAGER_ENUMERATE_SERVICE);
 	if (!services) {
-		print_message(stdin, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
+		print_message(stdout, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
 		if (return_status) return 0;
 		return 2;
 	}
@@ -1448,7 +1448,7 @@ int control_service(unsigned long control, int argc, TCHAR * *argv, bool return_
 			CloseServiceHandle(service_handle);
 
 			if (response) {
-				print_message(stdin, NSSM_MESSAGE_BAD_CONTROL_RESPONSE, canonical_name, service_status_text(service_status.dwCurrentState), service_control_text(control));
+				print_message(stdout, NSSM_MESSAGE_BAD_CONTROL_RESPONSE, canonical_name, service_status_text(service_status.dwCurrentState), service_control_text(control));
 				if (return_status) return 0;
 				return 1;
 			}
@@ -1498,7 +1498,7 @@ int control_service(unsigned long control, int argc, TCHAR * *argv, bool return_
 			CloseServiceHandle(service_handle);
 
 			if (response) {
-				print_message(stdin, NSSM_MESSAGE_BAD_CONTROL_RESPONSE, canonical_name, service_status_text(service_status.dwCurrentState), service_control_text(control));
+				print_message(stdout, NSSM_MESSAGE_BAD_CONTROL_RESPONSE, canonical_name, service_status_text(service_status.dwCurrentState), service_control_text(control));
 				if (return_status) return 0;
 				return 1;
 			}
@@ -1532,7 +1532,7 @@ int remove_service(nssm_service_t * service) {
 	/* Open service manager */
 	SC_HANDLE services = open_service_manager(SC_MANAGER_CONNECT | SC_MANAGER_ENUMERATE_SERVICE);
 	if (!services) {
-		print_message(stdin, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
+		print_message(stdout, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
 		return 2;
 	}
 
@@ -1551,7 +1551,7 @@ int remove_service(nssm_service_t * service) {
 
 	/* Try to delete the service */
 	if (!DeleteService(service->handle)) {
-		print_message(stdin, NSSM_MESSAGE_DELETESERVICE_FAILED);
+		print_message(stdout, NSSM_MESSAGE_DELETESERVICE_FAILED);
 		CloseServiceHandle(services);
 		return 4;
 	}
@@ -2285,7 +2285,7 @@ int list_nssm_services(int argc, TCHAR * *argv) {
 	/* Open service manager. */
 	SC_HANDLE services = open_service_manager(SC_MANAGER_CONNECT | SC_MANAGER_ENUMERATE_SERVICE);
 	if (!services) {
-		print_message(stdin, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
+		print_message(stdout, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
 		return 1;
 	}
 
@@ -2294,13 +2294,13 @@ int list_nssm_services(int argc, TCHAR * *argv) {
 	EnumServicesStatusEx(services, SC_ENUM_PROCESS_INFO, SERVICE_WIN32, SERVICE_STATE_ALL, 0, 0, &required, &count, &resume, 0);
 	unsigned long error = GetLastError();
 	if (error != ERROR_MORE_DATA) {
-		print_message(stdin, NSSM_MESSAGE_ENUMSERVICESSTATUS_FAILED, error_string(GetLastError()));
+		print_message(stdout, NSSM_MESSAGE_ENUMSERVICESSTATUS_FAILED, error_string(GetLastError()));
 		return 2;
 	}
 
 	ENUM_SERVICE_STATUS_PROCESS* status = (ENUM_SERVICE_STATUS_PROCESS*)HeapAlloc(GetProcessHeap(), 0, required);
 	if (!status) {
-		print_message(stdin, NSSM_MESSAGE_OUT_OF_MEMORY, _T("ENUM_SERVICE_STATUS_PROCESS"), _T("list_nssm_services()"));
+		print_message(stdout, NSSM_MESSAGE_OUT_OF_MEMORY, _T("ENUM_SERVICE_STATUS_PROCESS"), _T("list_nssm_services()"));
 		return 3;
 	}
 
@@ -2311,7 +2311,7 @@ int list_nssm_services(int argc, TCHAR * *argv) {
 			error = GetLastError();
 			if (error != ERROR_MORE_DATA) {
 				HeapFree(GetProcessHeap(), 0, status);
-				print_message(stdin, NSSM_MESSAGE_ENUMSERVICESSTATUS_FAILED, error_string(GetLastError()));
+				print_message(stdout, NSSM_MESSAGE_ENUMSERVICESSTATUS_FAILED, error_string(GetLastError()));
 				return 4;
 			}
 		}
@@ -2321,7 +2321,7 @@ int list_nssm_services(int argc, TCHAR * *argv) {
 			nssm_service_t* service = alloc_nssm_service();
 			if (!service) {
 				HeapFree(GetProcessHeap(), 0, status);
-				print_message(stdin, NSSM_MESSAGE_OUT_OF_MEMORY, _T("nssm_service_t"), _T("list_nssm_services()"));
+				print_message(stdout, NSSM_MESSAGE_OUT_OF_MEMORY, _T("nssm_service_t"), _T("list_nssm_services()"));
 				return 5;
 			}
 			_sntprintf_s(service->name, _countof(service->name), _TRUNCATE, _T("%s"), status[i].lpServiceName);
@@ -2346,7 +2346,7 @@ int service_process_tree(int argc, TCHAR * *argv) {
 
 	SC_HANDLE services = open_service_manager(SC_MANAGER_CONNECT);
 	if (!services) {
-		print_message(stdin, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
+		print_message(stdout, NSSM_MESSAGE_OPEN_SERVICE_MANAGER_FAILED);
 		return 1;
 	}
 
