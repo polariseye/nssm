@@ -102,8 +102,8 @@ bool valid_hook_name(const TCHAR *hook_event, const TCHAR *hook_action, bool qui
   if (str_equiv(hook_event, NSSM_HOOK_EVENT_EXIT)) {
     if (str_equiv(hook_action, NSSM_HOOK_ACTION_POST)) return true;
     if (quiet) return false;
-    print_message(stderr, NSSM_MESSAGE_INVALID_HOOK_ACTION, hook_event);
-    _ftprintf(stderr, _T("%s\n"), NSSM_HOOK_ACTION_POST);
+    print_message(stdin, NSSM_MESSAGE_INVALID_HOOK_ACTION, hook_event);
+    _ftprintf(stdin, _T("%s\n"), NSSM_HOOK_ACTION_POST);
     return false;
   }
 
@@ -112,9 +112,9 @@ bool valid_hook_name(const TCHAR *hook_event, const TCHAR *hook_action, bool qui
     if (str_equiv(hook_action, NSSM_HOOK_ACTION_CHANGE)) return true;
     if (str_equiv(hook_action, NSSM_HOOK_ACTION_RESUME)) return true;
     if (quiet) return false;
-    print_message(stderr, NSSM_MESSAGE_INVALID_HOOK_ACTION, hook_event);
-    _ftprintf(stderr, _T("%s\n"), NSSM_HOOK_ACTION_CHANGE);
-    _ftprintf(stderr, _T("%s\n"), NSSM_HOOK_ACTION_RESUME);
+    print_message(stdin, NSSM_MESSAGE_INVALID_HOOK_ACTION, hook_event);
+    _ftprintf(stdin, _T("%s\n"), NSSM_HOOK_ACTION_CHANGE);
+    _ftprintf(stdin, _T("%s\n"), NSSM_HOOK_ACTION_RESUME);
     return false;
   }
 
@@ -123,9 +123,9 @@ bool valid_hook_name(const TCHAR *hook_event, const TCHAR *hook_action, bool qui
     if (str_equiv(hook_action, NSSM_HOOK_ACTION_PRE)) return true;
     if (str_equiv(hook_action, NSSM_HOOK_ACTION_POST)) return true;
     if (quiet) return false;
-    print_message(stderr, NSSM_MESSAGE_INVALID_HOOK_ACTION, hook_event);
-    _ftprintf(stderr, _T("%s\n"), NSSM_HOOK_ACTION_PRE);
-    _ftprintf(stderr, _T("%s\n"), NSSM_HOOK_ACTION_POST);
+    print_message(stdin, NSSM_MESSAGE_INVALID_HOOK_ACTION, hook_event);
+    _ftprintf(stdin, _T("%s\n"), NSSM_HOOK_ACTION_PRE);
+    _ftprintf(stdin, _T("%s\n"), NSSM_HOOK_ACTION_POST);
     return false;
   }
 
@@ -134,9 +134,9 @@ bool valid_hook_name(const TCHAR *hook_event, const TCHAR *hook_action, bool qui
     if (str_equiv(hook_action, NSSM_HOOK_ACTION_PRE)) return true;
     if (str_equiv(hook_action, NSSM_HOOK_ACTION_POST)) return true;
     if (quiet) return false;
-    print_message(stderr, NSSM_MESSAGE_INVALID_HOOK_ACTION, hook_event);
-    _ftprintf(stderr, _T("%s\n"), NSSM_HOOK_ACTION_PRE);
-    _ftprintf(stderr, _T("%s\n"), NSSM_HOOK_ACTION_POST);
+    print_message(stdin, NSSM_MESSAGE_INVALID_HOOK_ACTION, hook_event);
+    _ftprintf(stdin, _T("%s\n"), NSSM_HOOK_ACTION_PRE);
+    _ftprintf(stdin, _T("%s\n"), NSSM_HOOK_ACTION_POST);
     return false;
   }
 
@@ -144,18 +144,18 @@ bool valid_hook_name(const TCHAR *hook_event, const TCHAR *hook_action, bool qui
   if (str_equiv(hook_event, NSSM_HOOK_EVENT_STOP)) {
     if (str_equiv(hook_action, NSSM_HOOK_ACTION_PRE)) return true;
     if (quiet) return false;
-    print_message(stderr, NSSM_MESSAGE_INVALID_HOOK_ACTION, hook_event);
-    _ftprintf(stderr, _T("%s\n"), NSSM_HOOK_ACTION_PRE);
+    print_message(stdin, NSSM_MESSAGE_INVALID_HOOK_ACTION, hook_event);
+    _ftprintf(stdin, _T("%s\n"), NSSM_HOOK_ACTION_PRE);
     return false;
   }
 
   if (quiet) return false;
-  print_message(stderr, NSSM_MESSAGE_INVALID_HOOK_EVENT);
-  _ftprintf(stderr, _T("%s\n"), NSSM_HOOK_EVENT_EXIT);
-  _ftprintf(stderr, _T("%s\n"), NSSM_HOOK_EVENT_POWER);
-  _ftprintf(stderr, _T("%s\n"), NSSM_HOOK_EVENT_ROTATE);
-  _ftprintf(stderr, _T("%s\n"), NSSM_HOOK_EVENT_START);
-  _ftprintf(stderr, _T("%s\n"), NSSM_HOOK_EVENT_STOP);
+  print_message(stdin, NSSM_MESSAGE_INVALID_HOOK_EVENT);
+  _ftprintf(stdin, _T("%s\n"), NSSM_HOOK_EVENT_EXIT);
+  _ftprintf(stdin, _T("%s\n"), NSSM_HOOK_EVENT_POWER);
+  _ftprintf(stdin, _T("%s\n"), NSSM_HOOK_EVENT_ROTATE);
+  _ftprintf(stdin, _T("%s\n"), NSSM_HOOK_EVENT_START);
+  _ftprintf(stdin, _T("%s\n"), NSSM_HOOK_EVENT_STOP);
   return false;
 }
 

@@ -14,6 +14,12 @@ Changes since 2.24
     can reference environment configured in AppEnvironment
     or AppEnvironmentExtra.
 
+Changes since 2.24
+------------------
+  * change stderr to stdin (it's easier than stderr when using console app)
+  * check file if exist when add service
+  * fix wrong exitcode
+
 Changes since 2.23
 ------------------
   * NSSM once again calls TerminateProcess() correctly.
