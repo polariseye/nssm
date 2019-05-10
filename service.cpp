@@ -516,7 +516,7 @@ int set_service_dependencies(const TCHAR * service_name, SC_HANDLE service_handl
 		if (groups) {
 			HKEY key;
 			if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, NSSM_REGISTRY_GROUPS, 0, KEY_READ, &key)) {
-				_ftprintf(stdin, _T("%s: %s\n"), NSSM_REGISTRY_GROUPS, error_string(GetLastError()));
+				_ftprintf(stdout, _T("%s: %s\n"), NSSM_REGISTRY_GROUPS, error_string(GetLastError()));
 				return 2;
 			}
 
@@ -532,14 +532,14 @@ int set_service_dependencies(const TCHAR * service_name, SC_HANDLE service_handl
 
 				ret = RegQueryValueEx(key, NSSM_REG_GROUPS, 0, &type, (unsigned char*)groups, &groupslen);
 				if (ret != ERROR_SUCCESS) {
-					_ftprintf(stdin, _T("%s\\%s: %s"), NSSM_REGISTRY_GROUPS, NSSM_REG_GROUPS, error_string(GetLastError()));
+					_ftprintf(stdout, _T("%s\\%s: %s"), NSSM_REGISTRY_GROUPS, NSSM_REG_GROUPS, error_string(GetLastError()));
 					HeapFree(GetProcessHeap(), 0, groups);
 					RegCloseKey(key);
 					return 4;
 				}
 			}
 			else if (ret != ERROR_FILE_NOT_FOUND) {
-				_ftprintf(stdin, _T("%s\\%s: %s"), NSSM_REGISTRY_GROUPS, NSSM_REG_GROUPS, error_string(GetLastError()));
+				_ftprintf(stdout, _T("%s\\%s: %s"), NSSM_REGISTRY_GROUPS, NSSM_REG_GROUPS, error_string(GetLastError()));
 				RegCloseKey(key);
 				return 4;
 			}
@@ -576,7 +576,7 @@ int set_service_dependencies(const TCHAR * service_name, SC_HANDLE service_handl
 				else {
 					HeapFree(GetProcessHeap(), 0, dependencies);
 					if (groups) HeapFree(GetProcessHeap(), 0, groups);
-					_ftprintf(stdin, _T("%s: %s"), s, error_string(ERROR_SERVICE_DEPENDENCY_DELETED));
+					_ftprintf(stdout, _T("%s: %s"), s, error_string(ERROR_SERVICE_DEPENDENCY_DELETED));
 					return 5;
 				}
 			}
@@ -586,7 +586,7 @@ int set_service_dependencies(const TCHAR * service_name, SC_HANDLE service_handl
 					HeapFree(GetProcessHeap(), 0, dependencies);
 					if (groups) HeapFree(GetProcessHeap(), 0, groups);
 					CloseServiceHandle(services);
-					_ftprintf(stdin, _T("%s: %s"), s, error_string(ERROR_SERVICE_DEPENDENCY_DELETED));
+					_ftprintf(stdout, _T("%s: %s"), s, error_string(ERROR_SERVICE_DEPENDENCY_DELETED));
 					return 5;
 				}
 			}
@@ -867,10 +867,10 @@ int pre_install_service(int argc, TCHAR * *argv) {
 	{
 		if (fileMode == EACCES)
 		{
-			print_message(stdout, NSSM_EXE_FILE_CAN_NOT_ACCESS);
+			print_message(stdout, NSSM_EXE_FILE_CAN_NOT_ACCESS, service->exe);
 		}
 		else {
-			print_message(stdout, NSSM_EXE_FILE_CAN_NOT_FOUND);
+			print_message(stdout, NSSM_EXE_FILE_CAN_NOT_FOUND, service->exe);
 		}
 
 		return 1;
@@ -959,7 +959,7 @@ int pre_edit_service(int argc, TCHAR * *argv) {
 		}
 		if (!settings[i].name) {
 			print_message(stdout, NSSM_MESSAGE_INVALID_PARAMETER, parameter);
-			for (i = 0; settings[i].name; i++) _ftprintf(stdin, _T("%s\n"), settings[i].name);
+			for (i = 0; settings[i].name; i++) _ftprintf(stdout, _T("%s\n"), settings[i].name);
 			return 1;
 		}
 
@@ -1457,7 +1457,7 @@ int control_service(unsigned long control, int argc, TCHAR * *argv, bool return_
 		}
 		else {
 			CloseServiceHandle(service_handle);
-			_ftprintf(stdin, _T("%s: %s: %s"), canonical_name, service_control_text(control), error_string(error));
+			_ftprintf(stdout, _T("%s: %s: %s"), canonical_name, service_control_text(control), error_string(error));
 			if (return_status) return 0;
 			return 1;
 		}
@@ -1477,7 +1477,7 @@ int control_service(unsigned long control, int argc, TCHAR * *argv, bool return_
 			return 0;
 		}
 		else {
-			_ftprintf(stdin, _T("%s: %s\n"), canonical_name, error_string(error));
+			_ftprintf(stdout, _T("%s: %s\n"), canonical_name, error_string(error));
 			if (return_status) return 0;
 			return 1;
 		}
@@ -1508,7 +1508,7 @@ int control_service(unsigned long control, int argc, TCHAR * *argv, bool return_
 		}
 		else {
 			CloseServiceHandle(service_handle);
-			_ftprintf(stdin, _T("%s: %s: %s"), canonical_name, service_control_text(control), error_string(error));
+			_ftprintf(stdout, _T("%s: %s: %s"), canonical_name, service_control_text(control), error_string(error));
 			if (error == ERROR_SERVICE_NOT_ACTIVE) {
 				if (control == SERVICE_CONTROL_SHUTDOWN || control == SERVICE_CONTROL_STOP) {
 					if (return_status) return SERVICE_STOPPED;
@@ -2376,7 +2376,7 @@ int service_process_tree(int argc, TCHAR * *argv) {
 		long error = GetLastError();
 		CloseServiceHandle(service_handle);
 		if (!ret) {
-			_ftprintf(stdin, _T("%s: %s\n"), canonical_name, error_string(error));
+			_ftprintf(stdout, _T("%s: %s\n"), canonical_name, error_string(error));
 			errors++;
 			continue;
 		}
@@ -2387,7 +2387,7 @@ int service_process_tree(int argc, TCHAR * *argv) {
 
 		k.process_handle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, k.pid);
 		if (!k.process_handle) {
-			_ftprintf(stdin, _T("%s: %lu: %s\n"), canonical_name, k.pid, error_string(GetLastError()));
+			_ftprintf(stdout, _T("%s: %lu: %s\n"), canonical_name, k.pid, error_string(GetLastError()));
 			continue;
 		}
 

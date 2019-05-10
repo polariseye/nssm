@@ -208,7 +208,7 @@ static int setting_set_exit_action(const TCHAR *service_name, void *param, const
   }
 
   print_message(stdout, NSSM_MESSAGE_INVALID_EXIT_ACTION, action_string);
-  for (int i = 0; exit_action_strings[i]; i++) _ftprintf(stdin, _T("%s\n"), exit_action_strings[i]);
+  for (int i = 0; exit_action_strings[i]; i++) _ftprintf(stdout, _T("%s\n"), exit_action_strings[i]);
 
   return -1;
 }
@@ -621,7 +621,7 @@ static int setting_set_priority(const TCHAR *service_name, void *param, const TC
   }
 
   print_message(stdout, NSSM_MESSAGE_INVALID_PRIORITY, priority_string);
-  for (i = 0; priority_strings[i]; i++) _ftprintf(stdin, _T("%s\n"), priority_strings[i]);
+  for (i = 0; priority_strings[i]; i++) _ftprintf(stdout, _T("%s\n"), priority_strings[i]);
 
   return -1;
 }
@@ -1193,7 +1193,7 @@ int native_set_startup(const TCHAR *service_name, void *param, const TCHAR *name
 
   if (service_startup < 0) {
     print_message(stdout, NSSM_MESSAGE_INVALID_SERVICE_STARTUP, value->string);
-    for (i = 0; startup_strings[i]; i++) _ftprintf(stdin, _T("%s\n"), startup_strings[i]);
+    for (i = 0; startup_strings[i]; i++) _ftprintf(stdout, _T("%s\n"), startup_strings[i]);
     return -1;
   }
 
@@ -1262,8 +1262,8 @@ int native_set_type(const TCHAR *service_name, void *param, const TCHAR *name, v
   if (str_equiv(value->string, NSSM_INTERACTIVE_PROCESS)) type |= SERVICE_INTERACTIVE_PROCESS;
   else if (! str_equiv(value->string, NSSM_WIN32_OWN_PROCESS)) {
     print_message(stdout, NSSM_MESSAGE_INVALID_SERVICE_TYPE, value->string);
-    _ftprintf(stdin, _T("%s\n"), NSSM_WIN32_OWN_PROCESS);
-    _ftprintf(stdin, _T("%s\n"), NSSM_INTERACTIVE_PROCESS);
+    _ftprintf(stdout, _T("%s\n"), NSSM_WIN32_OWN_PROCESS);
+    _ftprintf(stdout, _T("%s\n"), NSSM_INTERACTIVE_PROCESS);
     return -1;
   }
 

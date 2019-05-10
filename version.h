@@ -1,5 +1,5 @@
-#define NSSM_VERSION _T("2.23-107-gf340c4a")
-#define NSSM_VERSIONINFO 2,23,107,0
-#define NSSM_DATE _T("2019/05/09 周四")
+#define NSSM_VERSION _T("2.23-108-gb01c849")
+#define NSSM_VERSIONINFO 2,23,108,0
+#define NSSM_DATE _T("2019/05/10 周五")
 #define NSSM_FILEFLAGS VS_FF_PRERELEASE
 #define NSSM_COPYRIGHT _T("Public Domain; Author Iain Patterson 2003-")
